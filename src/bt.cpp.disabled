@@ -1,0 +1,118 @@
+#include <Arduino.h>
+#include <Adafruit_PWMServoDriver.h> //https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+
+String blueToothVal;           //value sent over via bluetooth
+char lastValue;              //stores last state of device (on/off)
+
+
+Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver(0x40);
+
+boolean servo14 = false;
+boolean servo15 = false;
+
+
+void setup()
+{
+  Serial.begin(9600);
+  Serial1.begin(9600);
+  pinMode(13, OUTPUT);
+  pca.begin();
+  pca.setPWMFreq(60); // Analog servos run at ~60 Hz updates
+}
+
+
+void survoGoLeftABit(int n) {
+
+     int  MIN_IMP = 2300;
+     int  MAX_IMP = 2500;
+       for (int pos = MAX_IMP; pos > MIN_IMP; pos -= 10)
+        {
+            pca.writeMicroseconds(n, pos);
+            delay(10);
+        }
+       pca.setPin(n, 0, true); 
+}
+
+void survoGoRightABit(int n) {
+
+      int MIN_IMP = 500;
+      int MAX_IMP = 700;
+      
+       for (int pos = MAX_IMP; pos > MIN_IMP; pos -= 10)
+        {
+            pca.writeMicroseconds(n, pos);
+            delay(10);
+        }
+       
+       pca.setPin(n, 0, true); 
+}
+
+void loop()
+{
+  if (Serial1.available() > 0)
+  {
+
+    while(true)
+     {
+    blueToothVal = Serial1.readS();
+    Serial.println(blueToothVal);
+    if (blueToothVal == "left")
+    {
+      if (servo14) {
+        survoGoLeftABit(14);
+      }
+      if (servo15) {
+        survoGoLeftABit(15);
+      }
+    } else if (blueToothVal == "right")
+    {
+      if (servo14) {
+        survoGoRightABit(14);
+      }
+      if (servo15) {
+        survoGoRightABit(15);
+      }
+    }  else if (blueToothVal == "14")
+    {
+      servo14 = true;
+      servo15 = false;
+    } else if (blueToothVal == "15")
+    {
+      servo14 = false;
+      servo15 = true;
+    }
+     else if (blueToothVal == "1415")
+    {
+      servo14 = true;
+      servo15 = true;
+    }
+  }
+  }
+}
+
+// void loop()
+// {
+
+//   if (Serial1.available() > 0)
+//   {
+
+//     blueToothVal = Serial1.readString();
+//     if (blueToothVal == "1")
+//     {
+//       Serial.print(blueToothVal);
+//       Serial.print("=> LED ON");
+//       Serial.print("\n");
+//       /*Serial1.print("LED is ON");
+//         Serial1.print("\n");*/
+//       digitalWrite(13, HIGH);
+//     } else if (blueToothVal == "0")
+//     {
+//       Serial.print(blueToothVal);
+//       Serial.print("=> LED OFF"); 
+//       Serial.print("\n");
+//       /*Serial1.print("LED is OFF");
+//         Serial1.print("\n");*/
+//       digitalWrite(13, LOW);
+//     }
+//   }
+// }
